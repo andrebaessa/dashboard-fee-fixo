@@ -242,8 +242,6 @@ if arquivo:
 
     fig_empilhado.update_layout(
         barmode='stack',
-        plot_bgcolor='#f8f8f8',
-        paper_bgcolor='#f8f8f8',
         xaxis_title='Mês',
         yaxis_title='Receita Líquida (R$)',
         yaxis=dict(showgrid=False),
