@@ -225,6 +225,7 @@ if arquivo:
         color='Produto',
         text_auto=False,
         title='',
+        category_orders={'Mes': ordem_meses}
     )
 
     # Adiciona apenas o total por mês acima da barra
