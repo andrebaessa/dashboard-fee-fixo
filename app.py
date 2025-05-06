@@ -206,41 +206,43 @@ if arquivo:
     df_roa = calcular_roa(df_filtrado, df_pl)
 
     st.subheader("📊 Receita Mensal")
-    df_filtrado['Mes'] = df_filtrado['DATA'].dt.strftime('%b')
-    traduzir_meses = {
-        'Jan': 'Jan', 'Feb': 'Fev', 'Mar': 'Mar', 'Apr': 'Abr',
-        'May': 'Mai', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago',
-        'Sep': 'Set', 'Oct': 'Out', 'Nov': 'Nov', 'Dec': 'Dez'
-    }
-    df_filtrado['Mes'] = df_filtrado['Mes'].map(traduzir_meses)
+    receita_por_produto_mes = df_2024.groupby(['Mes', 'Produto'])['Receita Líquida'].sum().reset_index()
+    receita_por_produto_mes['Mes'] = pd.Categorical(receita_por_produto_mes['Mes'], categories=ordem_meses, ordered=True)
 
-    ordem_meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
-                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-
-    df_mes_produto = df_filtrado.groupby(['Mes', 'Produto'])['Receita Líquida'].sum().reset_index()
-    df_mes_produto['Mes'] = pd.Categorical(df_mes_produto['Mes'], categories=ordem_meses, ordered=True)
-    df_mes_produto = df_mes_produto.sort_values('Mes')
-
-    fig_receita_produto = px.bar(
-        df_mes_produto,
+    fig_empilhado = px.bar(
+        receita_por_produto_mes,
         x='Mes',
         y='Receita Líquida',
         color='Produto',
-        text_auto='.2s',
-        labels={'Receita Líquida': 'Receita Líquida (R$)'},
+        text_auto=False,
+        title='',
     )
 
-    fig_receita_produto.update_layout(
+    # Adiciona apenas o total por mês acima da barra
+    totais_por_mes = receita_por_produto_mes.groupby('Mes')['Receita Líquida'].sum().reset_index()
+    for i, row in totais_por_mes.iterrows():
+        fig_empilhado.add_annotation(
+            x=row['Mes'],
+            y=row['Receita Líquida'],
+            text=f"{row['Receita Líquida']/1000:.0f}k",
+            showarrow=False,
+            yshift=10,
+            font=dict(size=12, color='black')
+        )
+
+    fig_empilhado.update_layout(
         barmode='stack',
-        yaxis_tickformat=',.2f',
-        yaxis_title='Receita Líquida (R$)',
+        plot_bgcolor='#f8f8f8',
+        paper_bgcolor='#f8f8f8',
         xaxis_title='Mês',
-        xaxis=dict(categoryorder='array', categoryarray=ordem_meses),
-        plot_bgcolor='white',
-        showlegend=True,
+        yaxis_title='Receita Líquida (R$)',
+        yaxis=dict(showgrid=False),
+        xaxis=dict(showgrid=False),
+        legend_title='',
+        margin=dict(t=30, l=20, r=20, b=20),
     )
 
-    st.plotly_chart(fig_receita_produto, use_container_width=True)
+    st.plotly_chart(fig_empilhado, use_container_width=True)
 
     st.subheader("📈 Evolução RoA")
     df_2024['MesNum'] = df_2024['DATA'].dt.month
