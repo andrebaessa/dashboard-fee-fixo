@@ -207,26 +207,40 @@ if arquivo:
 
     st.subheader("📊 Receita Mensal")
     df_filtrado['Mes'] = df_filtrado['DATA'].dt.strftime('%b')
-    traduzir_meses = {'Jan': 'Jan', 'Feb': 'Fev', 'Mar': 'Mar', 'Apr': 'Abr','May': 'Mai', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago','Sep': 'Set', 'Oct': 'Out', 'Nov': 'Nov', 'Dec': 'Dez'}
+    traduzir_meses = {
+        'Jan': 'Jan', 'Feb': 'Fev', 'Mar': 'Mar', 'Apr': 'Abr',
+        'May': 'Mai', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago',
+        'Sep': 'Set', 'Oct': 'Out', 'Nov': 'Nov', 'Dec': 'Dez'
+    }
     df_filtrado['Mes'] = df_filtrado['Mes'].map(traduzir_meses)
-    ordem_meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun','Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
-    receita_mensal = df_filtrado.groupby('Mes')['Receita Líquida'].sum().reindex(ordem_meses).fillna(0).reset_index()
-    receita_mensal.columns = ['Mês', 'Receita']
-    fig_receita = px.bar(
-    receita_mensal, x='Mês', y='Receita',
-    labels={'Receita': 'Receita Líquida (R$)'},
-    text_auto='.2s',
-    color_discrete_sequence=['#37cc84']
+
+    ordem_meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun',
+                'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
+
+    df_mes_produto = df_filtrado.groupby(['Mes', 'Produto'])['Receita Líquida'].sum().reset_index()
+    df_mes_produto['Mes'] = pd.Categorical(df_mes_produto['Mes'], categories=ordem_meses, ordered=True)
+    df_mes_produto = df_mes_produto.sort_values('Mes')
+
+    fig_receita_produto = px.bar(
+        df_mes_produto,
+        x='Mes',
+        y='Receita Líquida',
+        color='Produto',
+        text_auto='.2s',
+        labels={'Receita Líquida': 'Receita Líquida (R$)'},
     )
-    fig_receita.update_layout(
-    yaxis_tickformat=',.2f',
-    yaxis_title='Receita Líquida (R$)',
-    xaxis_title='Mês',
-    xaxis=dict(showgrid=False),
-    yaxis=dict(showgrid=False)
+
+    fig_receita_produto.update_layout(
+        barmode='stack',
+        yaxis_tickformat=',.2f',
+        yaxis_title='Receita Líquida (R$)',
+        xaxis_title='Mês',
+        xaxis=dict(categoryorder='array', categoryarray=ordem_meses),
+        plot_bgcolor='white',
+        showlegend=True,
     )
-    fig_receita.update_yaxes(separatethousands=True)
-    st.plotly_chart(fig_receita, use_container_width=True)
+
+    st.plotly_chart(fig_receita_produto, use_container_width=True)
 
     st.subheader("📈 Evolução RoA")
     df_2024['MesNum'] = df_2024['DATA'].dt.month
