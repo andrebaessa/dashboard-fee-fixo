@@ -206,6 +206,16 @@ if arquivo:
     df_roa = calcular_roa(df_filtrado, df_pl)
 
     st.subheader("📊 Receita Mensal")
+    
+    df_2024['Mes'] = df_2024['DATA'].dt.strftime('%b')
+    traduzir_meses = {
+        'Jan': 'Jan', 'Feb': 'Fev', 'Mar': 'Mar', 'Apr': 'Abr',
+        'May': 'Mai', 'Jun': 'Jun', 'Jul': 'Jul', 'Aug': 'Ago',
+        'Sep': 'Set', 'Oct': 'Out', 'Nov': 'Nov', 'Dec': 'Dez'
+    }
+    df_2024['Mes'] = df_2024['Mes'].map(traduzir_meses)
+
+    ordem_meses = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
     receita_por_produto_mes = df_2024.groupby(['Mes', 'Produto'])['Receita Líquida'].sum().reset_index()
     receita_por_produto_mes['Mes'] = pd.Categorical(receita_por_produto_mes['Mes'], categories=ordem_meses, ordered=True)
 
